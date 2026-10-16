@@ -1,6 +1,56 @@
+:root {
+    --app-bg: #f8f9fa;
+    --app-text: #212529;
+    --app-nav-bg: #ffffff;
+    --app-hover-bg: #e9ecef;
+    --app-hover-text: #212529;
+    --app-active-bg: #dee2e6;
+    --app-shadow: rgba(0, 0, 0, 0.15);
+}
+
+[data-bs-theme="dark"] {
+    --app-bg: #121212;
+    --app-text: #e9ecef;
+    --app-nav-bg: #1e1e1e;
+    --app-hover-bg: #2a2a2a;
+    --app-hover-text: #ffffff;
+    --app-active-bg: #333333;
+    --app-shadow: rgba(0, 0, 0, 0.6);
+}
+
+html,
+body {
+    background-color: var(--app-bg);
+    color: var(--app-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 body {
     padding-bottom: 120px;
-    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6,
+p, span, a, li, label {
+    color: var(--app-text);
+}
+
+.text-muted {
+    color: var(--bs-secondary-color) !important;
+}
+
+.card {
+    background-color: var(--app-nav-bg);
+    color: var(--app-text);
+    border: 1px solid var(--bs-border-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.card-header,
+.card-body,
+.card-footer {
+    background-color: transparent;
+    color: var(--app-text);
 }
 
 .floating-nav {
@@ -10,11 +60,12 @@ body {
     transform: translateX(-50%);
     width: auto;
     max-width: calc(100% - 32px);
-    background-color: #ffffff;
+    background-color: var(--app-nav-bg);
     border-radius: 50px;
     padding: 0.5rem 1rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 24px var(--app-shadow);
     z-index: 1030;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .floating-nav .container-fluid {
@@ -38,18 +89,25 @@ body {
     width: 44px;
     height: 44px;
     padding: 0;
-    color: #495057;
+    color: var(--app-text);
     border-radius: 50%;
     transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+.floating-nav .nav-link svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    transition: fill 0.25s ease;
+}
+
 .floating-nav .nav-link:hover:not(.active):not(.disabled) {
-    background-color: #e9ecef;
-    color: #212529;
+    background-color: var(--app-hover-bg);
+    color: var(--app-hover-text);
 }
 
 .floating-nav .nav-link:active:not(.active):not(.disabled) {
-    background-color: #dee2e6;
+    background-color: var(--app-active-bg);
 }
 
 .floating-nav .nav-link.active {
@@ -57,14 +115,13 @@ body {
     color: #ffffff;
 }
 
-.floating-nav .nav-link.disabled {
-    color: #adb5bd;
-    cursor: not-allowed;
+.floating-nav .nav-link.active svg {
+    fill: #ffffff;
 }
 
-.floating-nav .nav-link svg {
-    width: 20px;
-    height: 20px;
+.floating-nav .nav-link.disabled {
+    color: var(--bs-secondary-color);
+    cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
