@@ -111,7 +111,7 @@ p, span, a, li, label {
 }
 
 .floating-nav .nav-link.active {
-    background-color: #0d6efd;
+    background-color: #777777;
     color: #ffffff;
 }
 
@@ -134,4 +134,118 @@ p, span, a, li, label {
         width: 18px;
         height: 18px;
     }
+}
+html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+    display: none;
+}
+
+body::-webkit-scrollbar {
+    display: none;
+}
+.btn-outline {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border: 2px solid var(--app-text);
+    border-radius: 50px;
+    background-color: transparent;
+    color: var(--app-text);
+    cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.btn-outline:hover {
+    background-color: var(--app-hover-bg);
+    color: var(--app-hover-text);
+    border-color: var(--app-hover-text);
+}
+
+.btn-outline:active {
+    background-color: var(--app-active-bg);
+}
+
+.btn-outline:focus-visible {
+    outline: 2px solid #777777;
+    outline-offset: 2px;
+}
+
+.btn-text {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 50px;
+    background-color: transparent;
+    color: var(--app-text);
+    cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.btn-text:hover {
+    background-color: var(--app-hover-bg);
+    color: var(--app-hover-text);
+}
+
+.btn-text:active {
+    background-color: var(--app-active-bg);
+}
+
+.btn-text:focus-visible {
+    outline: 2px solid #818181;
+    outline-offset: 2px;
+}
+
+.btn-solid {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 50px;
+    background-color: var(--app-text);
+    color: var(--app-bg);
+    cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease, opacity 0.25s ease;
+}
+
+.btn-solid:hover {
+    opacity: 0.85;
+}
+
+.btn-solid:active {
+    opacity: 0.7;
+}
+
+.btn-solid:focus-visible {
+    outline: 2px solid #5a5a5a;
+    outline-offset: 2px;
+}
+
+.theme-info {
+    color: #fcfdfd;
+}
+
+.theme-info:hover {
+    background-color: rgba(13, 110, 253, 0.12);
+    color: #b8b9b9;
+}
+
+.theme-inverse {
+    background-color: var(--app-text);
+    color: var(--app-bg);
+    border-color: var(--app-text);
+}
+
+.theme-inverse:hover {
+    opacity: 0.85;
 }
