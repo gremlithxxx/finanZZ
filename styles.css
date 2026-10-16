@@ -1,0 +1,80 @@
+body {
+    padding-bottom: 120px;
+    background-color: #f8f9fa;
+}
+
+.floating-nav {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    max-width: calc(100% - 32px);
+    background-color: #ffffff;
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    z-index: 1030;
+}
+
+.floating-nav .container-fluid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+.floating-nav .nav {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.floating-nav .nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    color: #495057;
+    border-radius: 50%;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.floating-nav .nav-link:hover:not(.active):not(.disabled) {
+    background-color: #e9ecef;
+    color: #212529;
+}
+
+.floating-nav .nav-link:active:not(.active):not(.disabled) {
+    background-color: #dee2e6;
+}
+
+.floating-nav .nav-link.active {
+    background-color: #0d6efd;
+    color: #ffffff;
+}
+
+.floating-nav .nav-link.disabled {
+    color: #adb5bd;
+    cursor: not-allowed;
+}
+
+.floating-nav .nav-link svg {
+    width: 20px;
+    height: 20px;
+}
+
+@media (max-width: 768px) {
+    .floating-nav .nav-link {
+        width: 40px;
+        height: 40px;
+    }
+
+    .floating-nav .nav-link svg {
+        width: 18px;
+        height: 18px;
+    }
+}
