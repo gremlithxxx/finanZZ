@@ -10,15 +10,57 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
     
-    <link rel="stylesheet" href="../styles.css?v=3">
+    <link rel="stylesheet" href="../styles.css?v=30">
+
+    <style>
+        /* Estilos para los menús flotantes (Bottom Sheets) */
+        .bottom-sheet-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 9999;
+            display: none; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .bottom-sheet-overlay.show { display: block; opacity: 1; }
+        
+        .bottom-sheet {
+            position: fixed; bottom: -100%; left: 0; width: 100%;
+            background-color: var(--app-nav-bg, #fff); color: var(--app-text, #000);
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            z-index: 10000; transition: bottom 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .bottom-sheet.show { bottom: 0; }
+        
+        .bottom-sheet-handle {
+            width: 40px; height: 5px; background-color: #ccc;
+            border-radius: 5px; margin: 0 auto 15px auto;
+        }
+        [data-bs-theme="dark"] .bottom-sheet-handle { background-color: #555; }
+        [data-bs-theme="dark"] .bottom-sheet-overlay { background: rgba(0, 0, 0, 0.7); }
+
+        /* Estilo para los botones de configuración */
+        .btn-config {
+            text-align: left;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="container py-5">
+    <div class="container py-5" style="max-width: 600px;">
         <h1 class="mb-4">Configuración</h1>
-        <div class="card" style="border-radius: 10px;">
+
+        <!-- 1. MODO OSCURO (Fijo en pantalla) -->
+        <div class="card mb-4" style="border-radius: 10px;">
             <div class="card-body">
-                <h5 class="card-title">Tema de la aplicación</h5>
+                <h5 class="card-title mb-3">Modo oscuro</h5>
                 <div class="d-flex align-items-center gap-3">
                     <span>Claro</span>
                     <div class="form-check form-switch">
@@ -28,8 +70,88 @@
                 </div>
             </div>
         </div>
+
+        <!-- 2. BOTONES PARA ABRIR MENÚS FLOTANTES -->
+        <h5 class="mb-3 mt-4 text-muted">Mi Cuenta</h5>
+        
+        <button type="button" class="btn btn-outline-primary w-100 btn-config" id="btnAbrirPerfil">
+            <span>Perfil de Usuario</span>
+        </button>
+
+        <button type="button" class="btn btn-outline-success w-100 btn-config" id="btnAbrirIngreso">
+            <span>Ingresos Mensuales</span>
+        </button>
+
+        <button type="button" class="btn btn-outline-danger w-100 btn-config" id="btnAbrirGastos">
+            <span>Gastos Mensuales</span>
+        </button>
     </div>
 
+    <!-- FONDO OSCURO -->
+    <div class="bottom-sheet-overlay" id="sheetOverlay"></div>
+
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: PERFIL                      -->
+    <!-- ========================================== -->
+    <div class="bottom-sheet" id="sheetPerfil">
+        <div class="bottom-sheet-handle"></div>
+        <h5 class="text-center mb-4">Perfil de Usuario</h5>
+        
+        <div class="mb-3">
+            <label for="nombreUsuario" class="form-label">¿Cómo te llamas?</label>
+            <input type="text" class="form-control" id="nombreUsuario" placeholder="Ej: Juan Pérez">
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary btn-cerrar">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnGuardarPerfil">Guardar Nombre</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: INGRESO                     -->
+    <!-- ========================================== -->
+    <div class="bottom-sheet" id="sheetIngreso">
+        <div class="bottom-sheet-handle"></div>
+        <h5 class="text-center mb-4">Ingresos Mensuales</h5>
+        
+        <div class="mb-3">
+            <label for="sueldoMensual" class="form-label">¿Cuánto ganas al mes?</label>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="sueldoMensual" placeholder="0.00" step="0.01">
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary btn-cerrar">Cancelar</button>
+            <button type="button" class="btn btn-success" id="btnGuardarSueldo">Guardar Ingreso</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: GASTOS                      -->
+    <!-- ========================================== -->
+    <div class="bottom-sheet" id="sheetGastos">
+        <div class="bottom-sheet-handle"></div>
+        <h5 class="text-center mb-4">Gastos Mensuales</h5>
+        
+        <div class="mb-3">
+            <label for="gastosMensuales" class="form-label">Total de gastos al mes</label>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="gastosMensuales" placeholder="0.00" step="0.01">
+            </div>
+            <small class="text-muted mt-2 d-block">Suma de renta, servicios, etc.</small>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary btn-cerrar">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="btnGuardarGastos">Guardar Gastos</button>
+        </div>
+    </div>
+
+    <!-- NAVBAR FLOTANTE -->
     <nav class="floating-nav">
         <a class="floating-link active" href="config.html" aria-label="Menú">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -53,8 +175,78 @@
         </a>
     </nav>
 
-    <script type="module" src="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-1a/pXj49ZQ1aHEmrJ+gMw1otqoVsYwlEnlD8mIfY2TV03r20Y0CN7uqx1tQogjPL" crossorigin="anonymous"></script>
+<script>
+    // --- CARGA DE DATOS AL INICIAR ---
+    document.addEventListener("DOMContentLoaded", function () {
+        const nombreGuardado = localStorage.getItem("nombreUsuario");
+        if (nombreGuardado) document.getElementById("nombreUsuario").value = nombreGuardado;
 
-    <script src="../theme.js?v=3"></script>
+        const sueldoGuardado = localStorage.getItem("sueldoMensual");
+        if (sueldoGuardado) document.getElementById("sueldoMensual").value = sueldoGuardado;
+
+        const gastosGuardados = localStorage.getItem("gastosMensuales");
+        if (gastosGuardados) document.getElementById("gastosMensuales").value = gastosGuardados;
+    });
+
+    // --- CONTROL DE MENÚS FLOTANTES ---
+    const overlay = document.getElementById("sheetOverlay");
+    const sheetPerfil = document.getElementById("sheetPerfil");
+    const sheetIngreso = document.getElementById("sheetIngreso");
+    const sheetGastos = document.getElementById("sheetGastos");
+
+    function mostrarPanel(panel) {
+        overlay.classList.add("show");
+        panel.classList.add("show");
+    }
+
+    function cerrarPaneles() {
+        overlay.classList.remove("show");
+        sheetPerfil.classList.remove("show");
+        sheetIngreso.classList.remove("show");
+        sheetGastos.classList.remove("show");
+    }
+
+    // Cerrar paneles
+    overlay.addEventListener("click", cerrarPaneles);
+    document.querySelectorAll(".btn-cerrar").forEach(btn => btn.addEventListener("click", cerrarPaneles));
+
+    // Abrir paneles
+    document.getElementById("btnAbrirPerfil").addEventListener("click", () => mostrarPanel(sheetPerfil));
+    document.getElementById("btnAbrirIngreso").addEventListener("click", () => mostrarPanel(sheetIngreso));
+    document.getElementById("btnAbrirGastos").addEventListener("click", () => mostrarPanel(sheetGastos));
+
+    // --- GUARDAR DATOS ---
+    document.getElementById("btnGuardarPerfil").addEventListener("click", function () {
+        const nombre = document.getElementById("nombreUsuario").value.trim();
+        if (nombre) {
+            localStorage.setItem("nombreUsuario", nombre);
+            cerrarPaneles();
+        } else {
+            alert("Por favor, escribe tu nombre.");
+        }
+    });
+
+    document.getElementById("btnGuardarSueldo").addEventListener("click", function () {
+        const sueldo = parseFloat(document.getElementById("sueldoMensual").value);
+        if (!isNaN(sueldo) && sueldo > 0) {
+            localStorage.setItem("sueldoMensual", sueldo);
+            cerrarPaneles();
+        } else {
+            alert("Por favor, ingresa un sueldo válido.");
+        }
+    });
+
+    document.getElementById("btnGuardarGastos").addEventListener("click", function () {
+        const gastos = parseFloat(document.getElementById("gastosMensuales").value);
+        if (!isNaN(gastos) && gastos >= 0) {
+            localStorage.setItem("gastosMensuales", gastos);
+            cerrarPaneles();
+        } else {
+            alert("Por favor, ingresa un monto válido.");
+        }
+    });
+</script>
+
+    <script src="../theme.js?v=30"></script>
 </body>
 </html>

@@ -10,7 +10,33 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
     
-    <link rel="stylesheet" href="../styles.css?v=8">
+    <link rel="stylesheet" href="../styles.css?v=27">
+
+    <style>
+        .bottom-sheet-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 9999;
+            display: none; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .bottom-sheet-overlay.show { display: block; opacity: 1; }
+        
+        .bottom-sheet {
+            position: fixed; bottom: -100%; left: 0; width: 100%;
+            background-color: var(--app-nav-bg, #fff); color: var(--app-text, #000);
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            z-index: 10000; transition: bottom 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .bottom-sheet.show { bottom: 0; }
+        
+        .bottom-sheet-handle {
+            width: 40px; height: 5px; background-color: #ccc;
+            border-radius: 5px; margin: 0 auto 15px auto;
+        }
+        [data-bs-theme="dark"] .bottom-sheet-handle { background-color: #555; }
+        [data-bs-theme="dark"] .bottom-sheet-overlay { background: rgba(0, 0, 0, 0.7); }
+    </style>
 </head>
 <body>
 
@@ -21,97 +47,91 @@
         </div>
     </div>
 
-    <!-- MODAL SIMULADOR -->
-    <div class="modal fade py-5" id="modalSimular" tabindex="-1" aria-labelledby="modalSimularLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered mx-auto" style="max-width: 600px; width: 100%;">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <form id="formSimulacion">
-                        <div class="mb-3">
-                            <label for="simProducto" class="form-label">¿Qué quieres comprar?</label>
-                            <input type="text" class="form-control" id="simProducto" placeholder="Ej: Celular nuevo" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="simCosto" class="form-label">Costo total</label>
-                            <input type="number" class="form-control" id="simCosto" placeholder="0.00" step="0.01" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="simCategoria" class="form-label">Categoría</label>
-                            <select class="form-control" id="simCategoria" required>
-                                <option value="">Selecciona una categoría</option>
-                                <option value="Tecnología">Tecnología</option>
-                                <option value="Hogar">Hogar</option>
-                                <option value="Transporte">Transporte</option>
-                                <option value="Salud">Salud</option>
-                                <option value="Educación">Educación</option>
-                                <option value="Ocio">Ocio</option>
-                                <option value="Otros">Otros</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="simPlazo" class="form-label">Plazo de ahorro</label>
-                            <select class="form-control" id="simPlazo" required>
-                                <option value="3">Corto plazo (3 meses)</option>
-                                <option value="6" selected>Mediano plazo (6 meses)</option>
-                                <option value="12">Largo plazo (12 meses)</option>
-                            </select>
-                        </div>
-                    </form>
-                    <!-- Aquí aparecerá el resultado del cálculo -->
-                    <div id="resultadoSimulacion" class="mt-3"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-primary" id="btnSimular">Calcular y Guardar</button>
-                </div>
+    <!-- CONTENEDOR DE SIMULACIONES EN LA PÁGINA -->
+    <div class="container mt-4 mb-5" style="max-width: 600px;">
+        
+        <!-- Filtro por categoría -->
+        <div class="mb-3">
+            <select class="form-control" id="filtroCategoria">
+                <option value="">Todas las categorías</option>
+                <option value="Tecnología">Tecnología</option>
+                <option value="Hogar">Hogar</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Salud">Salud</option>
+                <option value="Educación">Educación</option>
+                <option value="Ocio">Ocio</option>
+                <option value="Otros">Otros</option>
+            </select>
+        </div>
+
+        <div id="listaSimulaciones" class="row g-3">
+            <div class="col-12 text-center text-muted">
+                <p>No hay simulaciones registradas todavía.</p>
             </div>
         </div>
     </div>
 
-    <!-- MODAL HISTORIAL CON FILTRO -->
-    <div class="modal fade py-5" id="modalHistorialSimulaciones" tabindex="-1" aria-labelledby="modalHistorialSimLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable mx-auto" style="max-width: 600px; width: 100%;">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <!-- Filtro por categoría -->
-                    <div class="mb-3">
-                        <select class="form-control" id="filtroCategoria">
-                            <option value="">Todas las categorías</option>
-                            <option value="Tecnología">Tecnología</option>
-                            <option value="Hogar">Hogar</option>
-                            <option value="Transporte">Transporte</option>
-                            <option value="Salud">Salud</option>
-                            <option value="Educación">Educación</option>
-                            <option value="Ocio">Ocio</option>
-                            <option value="Otros">Otros</option>
-                        </select>
-                    </div>
+    <!-- FONDO OSCURO -->
+    <div class="bottom-sheet-overlay" id="sheetOverlay"></div>
 
-                    <div id="listaSimulaciones">
-                        <p class="text-muted text-center">No hay simulaciones registradas todavía.</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                </div>
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: AGREGAR SIMULACIÓN          -->
+    <!-- ========================================== -->
+    <div class="bottom-sheet" id="sheetNuevaSimulacion">
+        <div class="bottom-sheet-handle"></div>
+        <h5 class="text-center mb-4">Nueva Simulación</h5>
+        
+        <form id="formSimulacion">
+            <div class="mb-3">
+                <label for="simProducto" class="form-label">¿Qué quieres comprar?</label>
+                <input type="text" class="form-control" id="simProducto" placeholder="Ej: Celular nuevo" required>
             </div>
+            <div class="mb-3">
+                <label for="simCosto" class="form-label">Costo total</label>
+                <input type="number" class="form-control" id="simCosto" placeholder="0.00" step="0.01" required>
+            </div>
+            <div class="mb-3">
+                <label for="simCategoria" class="form-label">Categoría</label>
+                <select class="form-control" id="simCategoria" required>
+                    <option value="">Selecciona una categoría</option>
+                    <option value="Tecnología">Tecnología</option>
+                    <option value="Hogar">Hogar</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Salud">Salud</option>
+                    <option value="Educación">Educación</option>
+                    <option value="Ocio">Ocio</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="simPlazo" class="form-label">Plazo de ahorro</label>
+                <select class="form-control" id="simPlazo" required>
+                    <option value="3">Corto plazo (3 meses)</option>
+                    <option value="6" selected>Mediano plazo (6 meses)</option>
+                    <option value="12">Largo plazo (12 meses)</option>
+                </select>
+            </div>
+        </form>
+        
+        <!-- Resultado del cálculo -->
+        <div id="resultadoSimulacion" class="mt-3"></div>
+        
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary" id="btnCerrarSimulacion">Cerrar</button>
+            <button type="button" class="btn btn-primary" id="btnSimular">Calcular y Guardar</button>
         </div>
     </div>
 
     <!-- NAVBAR FLOTANTE -->
     <nav class="floating-nav">
-        <a class="floating-link" aria-label="simular" href="#" data-target="#modalSimular">
+        <!-- Botón para abrir simulador -->
+        <a class="floating-link" aria-label="simular" href="#" id="btnAbrirSimulacion">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 1a.5.5 0 0 1 .5.5v6.5a.5.5 0 0 0 .5.5h6.5a.5.5 0 0 1 0 1H9a.5.5 0 0 0-.5.5v6.5a.5.5 0 0 1-1 0V9a.5.5 0 0 0-.5-.5H1.5a.5.5 0 0 1 0-1H7a.5.5 0 0 0 .5-.5V1.5A.5.5 0 0 1 8 1"/>
             </svg>
         </a>
-        <a class="floating-link" aria-label="historial" href="#" data-target="#modalHistorialSimulaciones">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
-                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
-                <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
-            </svg>
-        </a>
+        
+        <!-- Botón de Inicio -->
         <a class="floating-link active" aria-label="casa" href="../index.html">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/>
@@ -119,61 +139,30 @@
         </a>
     </nav>
 
-    <script type="module" src="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-1a/pXj49ZQ1aHEmrJ+gMw1otqoVsYwlEnlD8mIfYTV03r20Y0CN7uqx1tQogjPL" crossorigin="anonymous"></script>
-
 <script>
-    // --- LÓGICA DE MODALES ---
-    function abrirModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.style.display = "block";
-            modal.classList.add("show");
-            document.body.style.overflow = "hidden";
-        }
+    // --- CONTROL DEL MENÚ FLOTANTE ---
+    const overlay = document.getElementById("sheetOverlay");
+    const sheetNuevaSimulacion = document.getElementById("sheetNuevaSimulacion");
+
+    function mostrarPanel(panel) {
+        overlay.classList.add("show");
+        panel.classList.add("show");
     }
 
-    function cerrarModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.style.display = "none";
-            modal.classList.remove("show");
-            document.body.style.overflow = "";
-        }
+    function cerrarPaneles() {
+        overlay.classList.remove("show");
+        sheetNuevaSimulacion.classList.remove("show");
     }
 
-    document.querySelectorAll("[data-target]").forEach(function (link) {
-        link.addEventListener("click", function (e) {
-            e.preventDefault();
-            const targetId = link.getAttribute("data-target").substring(1);
-            abrirModal(targetId);
-            
-            if (targetId === "modalHistorialSimulaciones") {
-                document.getElementById("filtroCategoria").value = "";
-                document.getElementById("resultadoSimulacion").innerHTML = "";
-                renderizarHistorialSimulaciones();
-            }
-        });
-    });
+    overlay.addEventListener("click", cerrarPaneles);
+    document.getElementById("btnCerrarSimulacion").addEventListener("click", cerrarPaneles);
 
-    document.querySelectorAll("[data-dismiss='modal']").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-            const modal = btn.closest(".modal");
-            if (modal) cerrarModal(modal.id);
-        });
-    });
-
-    document.querySelectorAll(".modal").forEach(function (modal) {
-        modal.addEventListener("click", function (e) {
-            if (e.target === modal) cerrarModal(modal.id);
-        });
-    });
-
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") {
-            document.querySelectorAll(".modal.show").forEach(function (m) {
-                cerrarModal(m.id);
-            });
-        }
+    // --- ABRIR MENÚ DE SIMULACIÓN ---
+    document.getElementById("btnAbrirSimulacion").addEventListener("click", function(e) {
+        e.preventDefault();
+        document.getElementById("formSimulacion").reset();
+        document.getElementById("resultadoSimulacion").innerHTML = "";
+        mostrarPanel(sheetNuevaSimulacion);
     });
 
     // --- LÓGICA DE SIMULACIÓN ---
@@ -188,28 +177,14 @@
             return;
         }
 
-        // 1. Obtener saldo actual (ingresos). 
-        // Asumimos que el saldo está guardado en localStorage con la clave "saldo".
-        // Si no existe, usamos 0 o un valor por defecto para que no falle.
         let saldoActual = parseFloat(localStorage.getItem("saldo")) || 0; 
-        
-        // Si no hay saldo guardado, mostramos un aviso pero dejamos continuar (opcional)
-        if (saldoActual === 0) {
-            // Podrías poner un alert aquí si quieres obligar al usuario a registrar sus ingresos primero
-            console.warn("No se ha registrado un saldo (ingresos) en la app. Se asume 0.");
-        }
-
-        // 2. Cálculo
         const ahorroMensual = costo / plazo;
         
-        // El "resultado en el que se calcula con los ingresos"
-        // Aquí calculamos el porcentaje de su saldo que representa ese ahorro mensual
         let porcentajeSaldo = 0;
         if (saldoActual > 0) {
             porcentajeSaldo = (ahorroMensual / saldoActual) * 100;
         }
 
-        // 3. Mostrar resultado en el modal
         const resultadoDiv = document.getElementById("resultadoSimulacion");
         let mensajeResultado = `
             <div class="alert alert-info mt-3">
@@ -219,13 +194,11 @@
         `;
         
         if (saldoActual > 0) {
-            mensajeResultado += `<small class="text-muted">Esto representa el <strong>${porcentajeSaldo.toFixed(1)}%</strong> de tu saldo/ingreso actual ($${saldoActual.toFixed(2)}).</small>`;
+            mensajeResultado += `<small class="text-muted">Esto representa el <strong>${porcentajeSaldo.toFixed(1)}%</strong> de tu saldo actual ($${saldoActual.toFixed(2)}).</small>`;
         }
-        
         mensajeResultado += `</div>`;
         resultadoDiv.innerHTML = mensajeResultado;
 
-        // 4. Guardar en historial
         const nuevaSimulacion = {
             producto: producto,
             costo: costo,
@@ -239,19 +212,17 @@
         simulaciones.push(nuevaSimulacion);
         localStorage.setItem("simulaciones", JSON.stringify(simulaciones));
 
-        // Limpiar el formulario para la próxima vez
         document.getElementById("formSimulacion").reset();
+        renderizarHistorialSimulaciones();
     });
 
-    // --- LÓGICA DEL HISTORIAL Y FILTRO ---
+    // --- MOSTRAR HISTORIAL EN LA PÁGINA ---
     function renderizarHistorialSimulaciones() {
         const contenedor = document.getElementById("listaSimulaciones");
-        const data = localStorage.getItem("simulaciones");
-        let simulaciones = data ? JSON.parse(data) : [];
+        let simulaciones = JSON.parse(localStorage.getItem("simulaciones")) || [];
         
         const filtro = document.getElementById("filtroCategoria").value;
 
-        // Filtrar por categoría si se seleccionó una
         if (filtro !== "") {
             simulaciones = simulaciones.filter(function(s) {
                 return s.categoria === filtro;
@@ -259,34 +230,43 @@
         }
 
         if (simulaciones.length === 0) {
-            contenedor.innerHTML = '<p class="text-muted text-center">No se encontraron simulaciones.</p>';
+            contenedor.innerHTML = '<div class="col-12 text-center text-muted"><p>No se encontraron simulaciones.</p></div>';
             return;
         }
 
-        let html = '<div class="list-group">';
-        simulaciones.forEach(function (s, index) {
-            html += '<div class="list-group-item">';
-            html += '<div class="d-flex justify-content-between align-items-center">';
-            html += '<div>';
-            html += '<h6 class="mb-1">' + s.producto + '</h6>';
-            html += '<small class="text-muted">' + s.categoria + ' | ' + s.fecha + '</small>';
-            html += '<p class="mb-0 small">Plazo: ' + s.plazo + ' meses</p>';
-            html += '</div>';
-            html += '<div class="text-end">';
-            html += '<span class="badge bg-secondary mb-1 d-block">Costo: $' + parseFloat(s.costo).toFixed(2) + '</span>';
-            html += '<span class="badge bg-success mb-2 d-block">Ahorro: $' + parseFloat(s.ahorroMensual).toFixed(2) + '/mes</span>';
-            html += '<button class="btn btn-sm btn-outline-danger" data-eliminar-sim="' + index + '">Eliminar</button>';
-            html += '</div>';
-            html += '</div>';
-            html += '</div>';
+        let html = "";
+        simulaciones.forEach(function (s) {
+            // Encontramos el índice real para eliminar
+            let todas = JSON.parse(localStorage.getItem("simulaciones")) || [];
+            const indexReal = todas.indexOf(s);
+
+            html += `
+                <div class="col-12">
+                    <div class="card shadow-sm mb-2">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title mb-1 fw-bold">${s.producto}</h6>
+                                    <small class="text-muted d-block">${s.categoria} | ${s.fecha}</small>
+                                    <small class="text-muted d-block">Plazo: ${s.plazo} meses</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-secondary mb-1 d-block">Costo: $${parseFloat(s.costo).toFixed(2)}</span>
+                                    <span class="badge bg-success mb-2 d-block">Ahorro: $${parseFloat(s.ahorroMensual).toFixed(2)}/mes</span>
+                                    <button class="btn btn-sm btn-outline-danger" data-eliminar="${indexReal}">Eliminar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
-        html += '</div>';
         contenedor.innerHTML = html;
 
-        // Evento para botones de eliminar
-        contenedor.querySelectorAll("[data-eliminar-sim]").forEach(function (btn) {
+        // Botones eliminar
+        contenedor.querySelectorAll("[data-eliminar]").forEach(function (btn) {
             btn.addEventListener("click", function () {
-                const index = parseInt(btn.getAttribute("data-eliminar-sim"), 10);
+                const index = parseInt(btn.getAttribute("data-eliminar"), 10);
                 let simulacionesActuales = JSON.parse(localStorage.getItem("simulaciones") || "[]");
                 simulacionesActuales.splice(index, 1);
                 localStorage.setItem("simulaciones", JSON.stringify(simulacionesActuales));
@@ -298,8 +278,10 @@
     // Escuchar el filtro de categorías
     document.getElementById("filtroCategoria").addEventListener("change", renderizarHistorialSimulaciones);
 
+    // Inicializar
+    document.addEventListener("DOMContentLoaded", renderizarHistorialSimulaciones);
 </script>
 
-    <script src="../theme.js?v=8"></script>
+    <script src="../theme.js?v=27"></script>
 </body>
 </html>

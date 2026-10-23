@@ -10,15 +10,15 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
     
-    <link rel="stylesheet" href="styles.css?v=3">
+    <link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
 
     <div class="card card-subtle theme-secondary" style="border-radius: 10px; margin: 20px;">
-        <h5 class="card-header">Bienvenid@, {nombre_de_usuario}!</h5>
+        <h5 class="card-header" id="saludoUsuario">Bienvenid@, Usuario!</h5>
         <div class="card-body text-start">
-            <p class="card-text">Tu saldo actual es:</p> 
-            <h4 class="card-title fst-italic">$X,XXX.XX</h4>
+            <p class="card-text">Tu saldo disponible es:</p> 
+            <h4 class="card-title fst-italic" id="saldoMostrar">$0.00</h4>
         </div>
     </div>
 
@@ -44,7 +44,7 @@
         </a>
         <a class="floating-link active" href="index.html" aria-label="Inicio">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/>
+                <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.707 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/>
             </svg>
         </a>
         <a class="floating-link" href="html/salud.html" aria-label="Salud">
@@ -61,6 +61,24 @@
 
     <script type="module" src="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-1a/pXj49ZQ1aHEmrJ+gMw1otqoVsYwlEnlD8mIfY2TV03r20Y0CN7uqx1tQogjPL" crossorigin="anonymous"></script>
 
-    <script src="theme.js?v=3"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. Obtener datos del localStorage
+            const nombre = localStorage.getItem("nombreUsuario") || "Usuario";
+            const sueldo = parseFloat(localStorage.getItem("sueldoMensual")) || 0;
+            const gastos = parseFloat(localStorage.getItem("gastosMensuales")) || 0;
+
+            // 2. Calcular el saldo (Sueldo - Gastos)
+            const saldoDisponible = sueldo - gastos;
+
+            // 3. Mostrar el nombre
+            document.getElementById("saludoUsuario").textContent = "Bienvenid@, " + nombre + "!";
+
+            // 4. Mostrar el saldo formateado con comas y decimales
+            document.getElementById("saldoMostrar").textContent = "$" + saldoDisponible.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        });
+    </script>
+
+    <script src="theme.js?v=29"></script>
 </body>
 </html>

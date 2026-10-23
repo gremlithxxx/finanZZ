@@ -10,7 +10,33 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
     
-    <link rel="stylesheet" href="../styles.css?v=7">
+    <link rel="stylesheet" href="../styles.css?v=26">
+
+    <style>
+        .bottom-sheet-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 9999;
+            display: none; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .bottom-sheet-overlay.show { display: block; opacity: 1; }
+        
+        .bottom-sheet {
+            position: fixed; bottom: -100%; left: 0; width: 100%;
+            background-color: var(--app-nav-bg, #fff); color: var(--app-text, #000);
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            z-index: 10000; transition: bottom 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .bottom-sheet.show { bottom: 0; }
+        
+        .bottom-sheet-handle {
+            width: 40px; height: 5px; background-color: #ccc;
+            border-radius: 5px; margin: 0 auto 15px auto;
+        }
+        [data-bs-theme="dark"] .bottom-sheet-handle { background-color: #555; }
+        [data-bs-theme="dark"] .bottom-sheet-overlay { background: rgba(0, 0, 0, 0.7); }
+    </style>
 </head>
 <body>
 
@@ -21,149 +47,106 @@
         </div>
     </div>
 
-    <!-- MODAL REGISTRAR -->
-    <div class="modal fade py-5" id="modalRegistrar" tabindex="-1" aria-labelledby="modalRegistrarLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered mx-auto" style="max-width: 600px; width: 100%;">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <form id="formCompra">
-                        <div class="mb-3">
-                            <label for="producto" class="form-label">Producto</label>
-                            <input type="text" class="form-control" id="producto" placeholder="Ej: Leche">
-                        </div>
-                        <div class="mb-3">
-                            <label for="precio" class="form-label">Precio</label>
-                            <input type="number" class="form-control" id="precio" placeholder="0.00" step="0.01">
-                        </div>
-                        <div class="mb-3">
-                            <label for="categoria" class="form-label">Categoría</label>
-                            <select class="form-control" id="categoria">
-                                <option value="">Selecciona una categoría</option>
-                                <option value="alimentos">Alimentos</option>
-                                <option value="tecnologia">Tecnología</option>
-                                <option value="cuidadopersonal">Cuidado personal</option>
-                                <option value="hogar">Hogar</option>
-                                <option value="mascotas">Mascotas</option>
-                                <option value="salud">Salud</option>
-                                <option value="pasatiempos">Pasatiempos</option>
-                                <option value="servicios">Servicios</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="concepto" class="form-label">Concepto</label>
-                            <textarea class="form-control" id="concepto" rows="3" placeholder="Opcional"></textarea>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="btnGuardar">Guardar</button>
-                </div>
+    <!-- CONTENEDOR DE COMPRAS EN LA PÁGINA -->
+    <div class="container mt-4 mb-5" style="max-width: 600px;">
+        
+        <!-- Buscador -->
+        <div class="mb-3">
+            <input type="text" class="form-control" id="buscadorHistorial" placeholder="Buscar por producto...">
+        </div>
+
+        <div id="listaCompras" class="row g-3">
+            <div class="col-12 text-center text-muted">
+                <p>No hay compras registradas todavía.</p>
             </div>
         </div>
     </div>
 
-<!-- MODAL HISTORIAL -->
-<div class="modal fade py-5" id="modalHistorial" tabindex="-1" aria-labelledby="modalHistorialLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable mx-auto" style="max-width: 600px; width: 100%;">
-        <div class="modal-content">
-            <div class="modal-body">
-                
-                <!-- NUEVO: Buscador -->
-                <div class="mb-3">
-                    <input type="text" class="form-control" id="buscadorHistorial" placeholder="Buscar por producto...">
-                </div>
+    <!-- FONDO OSCURO -->
+    <div class="bottom-sheet-overlay" id="sheetOverlay"></div>
 
-                <div id="listaCompras">
-                    <p class="text-muted text-center">No hay compras registradas todavía.</p>
-                </div>
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: AGREGAR COMPRA              -->
+    <!-- ========================================== -->
+    <div class="bottom-sheet" id="sheetNuevaCompra">
+        <div class="bottom-sheet-handle"></div>
+        <h5 class="text-center mb-4">Registrar Compra</h5>
+        
+        <form id="formCompra">
+            <div class="mb-3">
+                <label for="producto" class="form-label">Producto</label>
+                <input type="text" class="form-control" id="producto" placeholder="Ej: Leche">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            <div class="mb-3">
+                <label for="precio" class="form-label">Precio</label>
+                <input type="number" class="form-control" id="precio" placeholder="0.00" step="0.01">
             </div>
-        </div>
+            <div class="mb-3">
+                <label for="categoria" class="form-label">Categoría</label>
+                <select class="form-control" id="categoria">
+                    <option value="">Selecciona una categoría</option>
+                    <option value="alimentos">Alimentos</option>
+                    <option value="tecnologia">Tecnología</option>
+                    <option value="cuidadopersonal">Cuidado personal</option>
+                    <option value="hogar">Hogar</option>
+                    <option value="mascotas">Mascotas</option>
+                    <option value="salud">Salud</option>
+                    <option value="pasatiempos">Pasatiempos</option>
+                    <option value="servicios">Servicios</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="concepto" class="form-label">Concepto</label>
+                <textarea class="form-control" id="concepto" rows="3" placeholder="Opcional"></textarea>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" class="btn btn-secondary" id="btnCerrarCompra">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGuardar">Guardar</button>
+            </div>
+        </form>
     </div>
-</div>
 
     <!-- NAVBAR FLOTANTE -->
     <nav class="floating-nav">
-        <a class="floating-link" aria-label="agregar" href="#" data-target="#modalRegistrar">
+        <!-- Botón para agregar compra -->
+        <a class="floating-link" aria-label="agregar" href="#" id="btnAbrirCompra">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
             </svg>
         </a>
-        <a class="floating-link" aria-label="historial" href="#" data-target="#modalHistorial">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
-                <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2"/>
-            </svg>
-        </a>
+        
+        <!-- Botón de Inicio -->
         <a class="floating-link active" aria-label="casa" href="../index.html">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/>
             </svg>
         </a>
     </nav>
-    
-
-    <script type="module" src="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-1a/pXj49ZQ1aHEmrJ+gMw1otqoVsYwlEnlD8mIfY2TV03r20Y0CN7uqx1tQogjPL" crossorigin="anonymous"></script>
 
 <script>
-    // --- ABRIR Y CERRAR MODALES ---
-    function abrirModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.style.display = "block";
-            modal.classList.add("show");
-            document.body.style.overflow = "hidden";
-        }
+    // --- CONTROL DEL MENÚ FLOTANTE ---
+    const overlay = document.getElementById("sheetOverlay");
+    const sheetNuevaCompra = document.getElementById("sheetNuevaCompra");
+
+    function mostrarPanel(panel) {
+        overlay.classList.add("show");
+        panel.classList.add("show");
     }
 
-    function cerrarModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.style.display = "none";
-            modal.classList.remove("show");
-            document.body.style.overflow = "";
-        }
+    function cerrarPaneles() {
+        overlay.classList.remove("show");
+        sheetNuevaCompra.classList.remove("show");
     }
 
-    // Escuchar botones de abrir
-    document.querySelectorAll("[data-target]").forEach(function (link) {
-        link.addEventListener("click", function (e) {
-            e.preventDefault();
-            const targetId = link.getAttribute("data-target").substring(1);
-            abrirModal(targetId);
-            
-            // Si abre el historial, limpiamos el buscador y renderizamos
-            if (targetId === "modalHistorial") {
-                document.getElementById("buscadorHistorial").value = "";
-                renderizarHistorial();
-            }
-        });
-    });
+    overlay.addEventListener("click", cerrarPaneles);
+    document.getElementById("btnCerrarCompra").addEventListener("click", cerrarPaneles);
 
-    // Escuchar botones de cerrar
-    document.querySelectorAll("[data-dismiss='modal']").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-            const modal = btn.closest(".modal");
-            if (modal) cerrarModal(modal.id);
-        });
-    });
-
-    // Cerrar al hacer clic fuera del modal
-    document.querySelectorAll(".modal").forEach(function (modal) {
-        modal.addEventListener("click", function (e) {
-            if (e.target === modal) cerrarModal(modal.id);
-        });
-    });
-
-    // Cerrar con la tecla Escape
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") {
-            document.querySelectorAll(".modal.show").forEach(function (m) {
-                cerrarModal(m.id);
-            });
-        }
+    // --- ABRIR MENÚ DE AGREGAR ---
+    document.getElementById("btnAbrirCompra").addEventListener("click", function(e) {
+        e.preventDefault();
+        document.getElementById("formCompra").reset();
+        mostrarPanel(sheetNuevaCompra);
     });
 
     // --- GUARDAR COMPRA ---
@@ -189,49 +172,52 @@
         compras.push(compra);
         localStorage.setItem("compras", JSON.stringify(compras));
 
-        cerrarModal("modalRegistrar");
-        document.getElementById("formCompra").reset();
+        cerrarPaneles();
+        renderizarHistorial(); // Actualizamos la lista en pantalla al instante
     });
 
-    // --- MOSTRAR HISTORIAL CON BUSCADOR ---
+    // --- MOSTRAR HISTORIAL EN LA PÁGINA ---
     function renderizarHistorial() {
         const contenedor = document.getElementById("listaCompras");
         const data = localStorage.getItem("compras");
         const compras = data ? JSON.parse(data) : [];
         
-        // Capturamos el texto de búsqueda
         const busqueda = document.getElementById("buscadorHistorial").value.toLowerCase();
 
-        // Filtramos las compras
         const filtradas = compras.filter(function(c) {
             return c.producto.toLowerCase().includes(busqueda);
         });
 
         if (filtradas.length === 0) {
-            contenedor.innerHTML = '<p class="text-muted text-center">No se encontraron compras.</p>';
+            contenedor.innerHTML = '<div class="col-12 text-center text-muted"><p>No se encontraron compras.</p></div>';
             return;
         }
 
-        let html = '<div class="list-group">';
+        let html = "";
         filtradas.forEach(function (c) {
-            // Buscamos el índice real para no fallar al eliminar
+            // Buscamos el índice real para que el botón de eliminar funcione bien
             const indexReal = compras.indexOf(c);
             
-            html += '<div class="list-group-item">';
-            html += '<div class="d-flex justify-content-between align-items-center">';
-            html += '<div>';
-            html += '<h6 class="mb-1">' + c.producto + '</h6>';
-            html += '<small class="text-muted">' + (c.categoria || "Sin categoría") + '</small>';
-            if (c.concepto) html += '<p class="mb-0 small">' + c.concepto + '</p>';
-            html += '</div>';
-            html += '<div class="text-end">';
-            html += '<span class="badge bg-primary mb-2">$' + parseFloat(c.precio).toFixed(2) + '</span><br>';
-            html += '<button class="btn btn-sm btn-outline-danger" data-eliminar="' + indexReal + '">Eliminar</button>';
-            html += '</div>';
-            html += '</div>';
-            html += '</div>';
+            html += `
+                <div class="col-12">
+                    <div class="card shadow-sm mb-2">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title mb-1 fw-bold">${c.producto}</h6>
+                                    <small class="text-muted d-block">${c.categoria || "Sin categoría"}</small>
+                                    ${c.concepto ? `<small class="text-muted fst-italic">${c.concepto}</small>` : ''}
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-primary mb-2 d-block">$${parseFloat(c.precio).toFixed(2)}</span>
+                                    <button class="btn btn-sm btn-outline-danger" data-eliminar="${indexReal}">Eliminar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
-        html += '</div>';
         contenedor.innerHTML = html;
 
         // Escuchar los botones de eliminar
@@ -248,8 +234,11 @@
 
     // Escuchar el buscador en tiempo real
     document.getElementById("buscadorHistorial").addEventListener("input", renderizarHistorial);
+
+    // Inicializar la lista al cargar la página
+    document.addEventListener("DOMContentLoaded", renderizarHistorial);
 </script>
 
-    <script src="../theme.js?v=7"></script>
+    <script src="../theme.js?v=26"></script>
 </body>
 </html>

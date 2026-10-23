@@ -6,19 +6,122 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Salud - FinanZ</title>
+    <title>Salud Financiera - FinanZ</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
     
-    <link rel="stylesheet" href="../styles.css?v=3">
+    <link rel="stylesheet" href="../styles.css?v=31">
+
+    <style>
+        .bottom-sheet-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 9999;
+            display: none; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .bottom-sheet-overlay.show { display: block; opacity: 1; }
+        
+        .bottom-sheet {
+            position: fixed; bottom: -100%; left: 0; width: 100%;
+            background-color: var(--app-nav-bg, #fff); color: var(--app-text, #000);
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            z-index: 10000; transition: bottom 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .bottom-sheet.show { bottom: 0; }
+        
+        .bottom-sheet-handle {
+            width: 40px; height: 5px; background-color: #ccc;
+            border-radius: 5px; margin: 0 auto 15px auto;
+        }
+        [data-bs-theme="dark"] .bottom-sheet-handle { background-color: #555; }
+        [data-bs-theme="dark"] .bottom-sheet-overlay { background: rgba(0, 0, 0, 0.7); }
+
+        .card-instrumento {
+            border-left: 5px solid #0d6efd;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="container py-5">
-        <h1 class="mb-4">Salud</h1>
-        <p class="text-muted">Aquí irá el contenido de la sección de salud.</p>
+    <div class="container py-5 card" style="max-width: 600px; margin-top: 20px;">
+        <div>
+            <h1 class="mb-0" style="text-align: center;">Salud Financiera</h1>
+        </div>
     </div>
 
+    <div class="container mt-4 mb-5" style="max-width: 600px;">
+        
+        <!-- Tarjeta de Perfil Financiero -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Tu Perfil Actual</h5>
+                <div class="d-flex justify-content-between mt-3">
+                    <div>
+                        <small class="text-muted d-block">Saldo Disponible</small>
+                        <span class="fw-bold fs-5" id="lblSaldo">$0.00</span>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted d-block">Capacidad de Ahorro</small>
+                        <span class="fw-bold fs-5 text-success" id="lblAhorro">$0.00</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100 mt-3" id="btnAbrirAnalisis">Ejecutar Modelo Predictivo</button>
+            </div>
+        </div>
+
+        <!-- Resultados de la IA (Ocultos al inicio) -->
+        <div id="resultadosIA" style="display: none;">
+            <h5 class="mb-3">Sugerencia de Portafolio</h5>
+            
+            <div id="contenedorInversiones">
+                <!-- Aquí JS inyectará las tarjetas de inversión -->
+            </div>
+
+            <div class="alert alert-success mt-4">
+                <h6 class="alert-heading fw-bold">Resumen del Modelo</h6>
+                <p class="mb-0 small" id="textoResumenIA"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FONDO OSCURO -->
+    <div class="bottom-sheet-overlay" id="sheetOverlay"></div>
+
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: PERFIL DE RIESGO            -->
+    <!-- ========================================== -->
+    <div class="bottom-sheet" id="sheetAnalisis">
+        <div class="bottom-sheet-handle"></div>
+        <h5 class="text-center mb-4">Configurar Modelo IA</h5>
+        
+        <div class="mb-3">
+            <label for="perfilRiesgo" class="form-label">¿Cuál es tu tolerancia al riesgo?</label>
+            <select class="form-select" id="perfilRiesgo">
+                <option value="conservador">Conservador (Priorizar seguridad)</option>
+                <option value="moderado" selected>Moderado (Equilibrio)</option>
+                <option value="agresivo">Agresivo (Buscar mayor rendimiento)</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="montoInvertir" class="form-label">¿Cuánto de tu saldo quieres invertir?</label>
+            <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" class="form-control" id="montoInvertir" placeholder="0.00" step="0.01">
+            </div>
+            <small class="text-muted">Si lo dejas en blanco, se usará todo tu saldo disponible.</small>
+        </div>
+        
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary" id="btnCerrarAnalisis">Cancelar</button>
+            <button type="button" class="btn btn-success" id="btnCalcularIA">Calcular Inversión</button>
+        </div>
+    </div>
+
+    <!-- NAVBAR FLOTANTE -->
     <nav class="floating-nav">
         <a class="floating-link" href="config.html" aria-label="Menú">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -42,8 +145,124 @@
         </a>
     </nav>
 
-    <script type="module" src="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-1a/pXj49ZQ1aHEmrJ+gMw1otqoVsYwlEnlD8mIfY2TV03r20Y0CN7uqx1tQogjPL" crossorigin="anonymous"></script>
+<script>
+    // --- DATOS REALES DEL MERCADO (Aproximados a 2026) ---
+    // Estos son los datos que normalmente consumiría una IA en producción
+    const INSTRUMENTOS = {
+        cetes: { nombre: "CETES (Gobierno)", rendimiento: 0.10, riesgo: 0.02, tipo: "Renta Fija" },
+        fintech: { nombre: "Cuenta Fintech (Nu/MercadoPago)", rendimiento: 0.13, riesgo: 0.05, tipo: "Renta Fija" },
+        etf: { nombre: "ETF S&P 500 / NAFTRAC", rendimiento: 0.15, riesgo: 0.18, tipo: "Renta Variable" }
+    };
 
-    <script src="../theme.js?v=3"></script>
+    let saldoDisponible = 0;
+
+    // --- CARGAR SALDO AL INICIAR ---
+    document.addEventListener("DOMContentLoaded", function () {
+        const sueldo = parseFloat(localStorage.getItem("sueldoMensual")) || 0;
+        const gastos = parseFloat(localStorage.getItem("gastosMensuales")) || 0;
+        
+        saldoDisponible = sueldo - gastos;
+        if (saldoDisponible < 0) saldoDisponible = 0; // No podemos invertir en deuda
+
+        // Formatear a moneda
+        const formateador = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+        
+        document.getElementById("lblSaldo").textContent = formateador.format(saldoDisponible);
+        // Sugerimos ahorrar el 20% del saldo para inversión
+        const ahorroSugerido = saldoDisponible * 0.20; 
+        document.getElementById("lblAhorro").textContent = formateador.format(ahorroSugerido);
+    });
+
+    // --- CONTROL DEL MENÚ FLOTANTE ---
+    const overlay = document.getElementById("sheetOverlay");
+    const sheetAnalisis = document.getElementById("sheetAnalisis");
+
+    function cerrarPanel() {
+        overlay.classList.remove("show");
+        sheetAnalisis.classList.remove("show");
+    }
+
+    overlay.addEventListener("click", cerrarPanel);
+    document.getElementById("btnCerrarAnalisis").addEventListener("click", cerrarPanel);
+
+    document.getElementById("btnAbrirAnalisis").addEventListener("click", function() {
+        overlay.classList.add("show");
+        sheetAnalisis.classList.add("show");
+    });
+
+    // --- LÓGICA DE LA "IA" (OPTIMIZACIÓN DE PORTAFOLIO) ---
+    document.getElementById("btnCalcularIA").addEventListener("click", function () {
+        const perfil = document.getElementById("perfilRiesgo").value;
+        let monto = parseFloat(document.getElementById("montoInvertir").value);
+
+        // Si no ingresa monto, usamos el saldo disponible (o el 20% de ahorro sugerido)
+        if (isNaN(monto) || monto <= 0) {
+            monto = saldoDisponible * 0.20; 
+            if (monto === 0) {
+                alert("No tienes saldo disponible para invertir. Registra tus ingresos primero.");
+                return;
+            }
+        }
+
+        if (monto > saldoDisponible) {
+            alert("No puedes invertir más de tu saldo disponible.");
+            return;
+        }
+
+        // Algoritmo de ponderación basado en el riesgo (Modelo Markowitz simplificado)
+        let pesos = {};
+        if (perfil === "conservador") {
+            pesos = { cetes: 0.80, fintech: 0.20, etf: 0.00 };
+        } else if (perfil === "moderado") {
+            pesos = { cetes: 0.40, fintech: 0.40, etf: 0.20 };
+        } else if (perfil === "agresivo") {
+            pesos = { cetes: 0.10, fintech: 0.30, etf: 0.60 };
+        }
+
+        // Calcular rendimiento esperado del portafolio
+        let rendimientoTotal = 0;
+        let htmlInversiones = "";
+        const formateador = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' });
+
+        for (const [key, peso] of Object.entries(pesos)) {
+            if (peso > 0) {
+                const inst = INSTRUMENTOS[key];
+                const montoAsignado = monto * peso;
+                const rendimientoAnual = montoAsignado * inst.rendimiento;
+                rendimientoTotal += (inst.rendimiento * peso);
+
+                htmlInversiones += `
+                    <div class="card card-instrumento shadow-sm">
+                        <div class="card-body py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1 fw-bold">${inst.nombre}</h6>
+                                    <small class="text-muted">${inst.tipo} | Riesgo: ${(inst.riesgo*100).toFixed(0)}%</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="d-block fw-bold text-primary">${formateador.format(montoAsignado)}</span>
+                                    <small class="text-success">+ ${formateador.format(rendimientoAnual)} / año</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Mostrar resultados
+        document.getElementById("contenedorInversiones").innerHTML = htmlInversiones;
+        document.getElementById("textoResumenIA").innerHTML = `
+            Basado en tu perfil <strong>${perfil}</strong>, el modelo sugiere invertir 
+            <strong>${formateador.format(monto)}</strong> de tu saldo. 
+            El rendimiento anual estimado de esta mezcla es del <strong>${(rendimientoTotal*100).toFixed(1)}%</strong>.
+        `;
+
+        document.getElementById("resultadosIA").style.display = "block";
+        cerrarPanel();
+    });
+</script>
+
+    <script src="../theme.js?v=31"></script>
 </body>
 </html>

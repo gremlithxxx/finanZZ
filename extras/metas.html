@@ -10,90 +10,148 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-B/GM4XqrwHnWXNOWMbloTmrYXZg10cakYGmpfsR/bbzQ6JAJI4ihuyADKLnBgrCe" crossorigin="anonymous">
     
-    <link rel="stylesheet" href="../styles.css?v=9">
+    <link rel="stylesheet" href="../styles.css?v=24">
+
+    <style>
+        .bottom-sheet-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 9999;
+            display: none; opacity: 0; transition: opacity 0.3s ease;
+        }
+        .bottom-sheet-overlay.show { display: block; opacity: 1; }
+        
+        .bottom-sheet {
+            position: fixed; bottom: -100%; left: 0; width: 100%;
+            background-color: var(--app-nav-bg, #fff); color: var(--app-text, #000);
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            z-index: 10000; transition: bottom 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .bottom-sheet.show { bottom: 0; }
+        
+        .bottom-sheet-handle {
+            width: 40px; height: 5px; background-color: #ccc;
+            border-radius: 5px; margin: 0 auto 15px auto;
+        }
+        [data-bs-theme="dark"] .bottom-sheet-handle { background-color: #555; }
+        [data-bs-theme="dark"] .bottom-sheet-overlay { background: rgba(0, 0, 0, 0.7); }
+    </style>
 </head>
 <body>
 
     <!-- TARJETA SUPERIOR -->
     <div class="container py-5 card" style="max-width: 600px; margin-top: 20px;">
         <div>
-            <h1 class="mb-4" style="text-align: center;">Mis Metas</h1>
+            <h1 class="mb-0" style="text-align: center;">Mis Metas</h1>
         </div>
     </div>
 
-    <!-- CONTENEDOR DE METAS -->
-    <div class="container" style="max-width: 600px;">
+    <!-- CONTENEDOR DE METAS ACTIVAS -->
+    <div class="container mt-4 mb-5" style="max-width: 600px;">
         <div id="listaMetas" class="row g-3">
-            <div class="col-12 text-center text-muted">
-                <p>Aún no tienes metas. ¡Crea una con el botón de <strong>+</strong>!</p>
+            <!-- Se llena con JS -->
+        </div>
+    </div>
+
+    <!-- FONDO OSCURO -->
+    <div class="bottom-sheet-overlay" id="sheetOverlay"></div>
+
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE 1: CREAR META                -->
+    <!-- ========================================== -->
+    <div class="bottom-sheet" id="sheetNuevaMeta">
+        <div class="bottom-sheet-handle"></div>
+        <h5 class="text-center mb-4">Nueva Meta de Ahorro</h5>
+        
+        <div id="sheetPaso1">
+            <form id="formMeta">
+                <div class="mb-3">
+                    <label for="metaNombre" class="form-label">¿Qué quieres lograr?</label>
+                    <input type="text" class="form-control" id="metaNombre" placeholder="Ej: Viaje a la playa" required>
+                </div>
+                <div class="mb-3">
+                    <label for="metaCosto" class="form-label">Costo total</label>
+                    <input type="number" class="form-control" id="metaCosto" placeholder="0.00" step="0.01" required>
+                </div>
+                <div class="mb-3">
+                    <label for="metaFecha" class="form-label">Fecha límite</label>
+                    <input type="date" class="form-control" id="metaFecha" required>
+                </div>
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <button type="button" class="btn btn-secondary" id="btnCerrarNuevaMeta">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnCalcularMeta">Calcular Plan</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="sheetPaso2" style="display: none;">
+            <div class="text-center">
+                <p class="mb-1">Para lograr <strong id="resumenNombre"></strong>:</p>
+                <h2 class="text-success mb-3" style="font-size: 2.5rem;">Ahorra <br><span id="resumenMonto"></span> al mes</h2>
+                <p class="text-muted small">Basado en tu fecha límite (<span id="resumenFecha"></span>).</p>
+            </div>
+            <div class="d-flex justify-content-center gap-2 mt-4">
+                <button type="button" class="btn btn-outline-secondary" id="btnVolverAtras">Atrás</button>
+                <button type="button" class="btn btn-success" id="btnGuardarMetaDefinitiva">¡Crear Meta!</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL CREAR META -->
-    <div class="modal fade py-5" id="modalCrearMeta" tabindex="-1" aria-labelledby="modalCrearMetaLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered mx-auto" style="max-width: 600px; width: 100%;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalCrearMetaLabel">Nueva Meta de Ahorro</h5>
-                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formMeta">
-                        <div class="mb-3">
-                            <label for="metaNombre" class="form-label">¿Qué quieres lograr?</label>
-                            <input type="text" class="form-control" id="metaNombre" placeholder="Ej: Viaje a la playa" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="metaCosto" class="form-label">Costo total de la meta</label>
-                            <input type="number" class="form-control" id="metaCosto" placeholder="0.00" step="0.01" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="metaFecha" class="form-label">Fecha límite</label>
-                            <input type="date" class="form-control" id="metaFecha" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="btnGuardarMeta">Crear Meta</button>
-                </div>
-            </div>
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE 2: ABONAR A META             -->
+    <!-- ========================================== -->
+    <div class="bottom-sheet" id="sheetAbonar">
+        <div class="bottom-sheet-handle"></div>
+        <h5 class="text-center mb-4">Abonar a la meta</h5>
+        
+        <p id="abonarNombreMeta" class="fw-bold text-center text-primary mb-4"></p>
+        
+        <div class="mb-3">
+            <label for="abonoCantidad" class="form-label">¿Cuánto vas a ahorrar hoy?</label>
+            <input type="number" class="form-control form-control-lg text-center" id="abonoCantidad" placeholder="$ 0.00" step="0.01">
+        </div>
+        
+        <div class="d-flex justify-content-center gap-2 mt-4">
+            <button type="button" class="btn btn-secondary" id="btnCerrarAbono">Cancelar</button>
+            <button type="button" class="btn btn-success" id="btnConfirmarAbono">Abonar</button>
         </div>
     </div>
 
-    <!-- MODAL ABONAR A META -->
-    <div class="modal fade py-5" id="modalAbonar" tabindex="-1" aria-labelledby="modalAbonarLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered mx-auto" style="max-width: 600px; width: 100%;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalAbonarLabel">Abonar a la meta</h5>
-                    <button type="button" class="btn-close" data-dismiss="modal" aria-label="Cerrar"></button>
-                </div>
-                <div class="modal-body">
-                    <p id="abonarNombreMeta" class="fw-bold"></p>
-                    <div class="mb-3">
-                        <label for="abonoCantidad" class="form-label">Cantidad a abonar</label>
-                        <input type="number" class="form-control" id="abonoCantidad" placeholder="0.00" step="0.01">
-                    </div>
-                    <!-- ID oculto para identificar la meta exacta -->
-                    <input type="hidden" id="abonoId" value="">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-success" id="btnConfirmarAbono">Abonar</button>
-                </div>
-            </div>
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE 3: VER METAS COMPLETADAS     -->
+    <!-- ========================================== -->
+    <div class="bottom-sheet" id="sheetCompletadas">
+        <div class="bottom-sheet-handle"></div>
+        <h5 class="text-center mb-4 text-success">Metas Completadas</h5>
+        
+        <div id="listaCompletadas" class="row g-3">
+            <!-- Se llena con JS -->
+        </div>
+
+        <div class="d-flex justify-content-center mt-4">
+            <button type="button" class="btn btn-secondary w-100" id="btnCerrarCompletadas">Cerrar</button>
         </div>
     </div>
 
     <!-- NAVBAR FLOTANTE -->
     <nav class="floating-nav">
-        <a class="floating-link" aria-label="crear meta" href="#" data-target="#modalCrearMeta">
+        <!-- Botón Crear Meta -->
+        <a class="floating-link" aria-label="crear meta" href="#" id="btnAbrirNuevaMeta">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
             </svg>
         </a>
+
+        <!-- Botón Ver Completadas -->
+        <a class="floating-link" aria-label="completadas" href="#" id="btnAbrirCompletadas">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8z"/>
+                <path d="M11.354 4.646a.5.5 0 0 0-.708 0L6 9.293 4.354 7.646a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l5-5a.5.5 0 0 0 0-.708z"/>
+            </svg>
+        </a>
+        
+        <!-- Botón Casa -->
         <a class="floating-link active" aria-label="casa" href="../index.html">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5"/>
@@ -101,51 +159,43 @@
         </a>
     </nav>
 
-    <script type="module" src="https://cdn.jsdelivr.net/npm/bootstrap@6.0.0-alpha.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-1a/pXj49ZQ1aHEmrJ+gMw1otqoVsYwlEnlD8mIfYTV03r20Y0CN7uqx1tQogjPL" crossorigin="anonymous"></script>
-
 <script>
-    // --- MODALES ---
-    function abrirModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.style.display = "block";
-            modal.classList.add("show");
-            document.body.style.overflow = "hidden";
-        }
+    let metaIdParaAbonar = null;
+    let metaTemporal = null;
+
+    // --- CONTROL DE LOS MENÚS FLOTANTES ---
+    const overlay = document.getElementById("sheetOverlay");
+    const sheetNuevaMeta = document.getElementById("sheetNuevaMeta");
+    const sheetAbonar = document.getElementById("sheetAbonar");
+    const sheetCompletadas = document.getElementById("sheetCompletadas");
+
+    function mostrarPanel(panel) {
+        overlay.classList.add("show");
+        panel.classList.add("show");
     }
 
-    function cerrarModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.style.display = "none";
-            modal.classList.remove("show");
-            document.body.style.overflow = "";
-        }
+    function cerrarPaneles() {
+        overlay.classList.remove("show");
+        sheetNuevaMeta.classList.remove("show");
+        sheetAbonar.classList.remove("show");
+        sheetCompletadas.classList.remove("show");
     }
 
-    document.querySelectorAll("[data-target]").forEach(function (link) {
-        link.addEventListener("click", function (e) {
-            e.preventDefault();
-            const targetId = link.getAttribute("data-target").substring(1);
-            abrirModal(targetId);
-        });
+    overlay.addEventListener("click", cerrarPaneles);
+    document.getElementById("btnCerrarNuevaMeta").addEventListener("click", cerrarPaneles);
+    document.getElementById("btnCerrarAbono").addEventListener("click", cerrarPaneles);
+    document.getElementById("btnCerrarCompletadas").addEventListener("click", cerrarPaneles);
+
+    // --- CREAR META ---
+    document.getElementById("btnAbrirNuevaMeta").addEventListener("click", function(e) {
+        e.preventDefault();
+        document.getElementById("formMeta").reset();
+        document.getElementById("sheetPaso1").style.display = "block";
+        document.getElementById("sheetPaso2").style.display = "none";
+        mostrarPanel(sheetNuevaMeta);
     });
 
-    document.querySelectorAll("[data-dismiss='modal']").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-            const modal = btn.closest(".modal");
-            if (modal) cerrarModal(modal.id);
-        });
-    });
-
-    document.querySelectorAll(".modal").forEach(function (modal) {
-        modal.addEventListener("click", function (e) {
-            if (e.target === modal) cerrarModal(modal.id);
-        });
-    });
-
-    // --- LÓGICA DE METAS ---
-    document.getElementById("btnGuardarMeta").addEventListener("click", function () {
+    document.getElementById("btnCalcularMeta").addEventListener("click", function () {
         const nombre = document.getElementById("metaNombre").value.trim();
         const costo = parseFloat(document.getElementById("metaCosto").value);
         const fechaLimite = document.getElementById("metaFecha").value;
@@ -157,19 +207,17 @@
 
         const hoy = new Date();
         const fechaMeta = new Date(fechaLimite + "T00:00:00");
-        
         if (fechaMeta < hoy) {
             alert("La fecha límite no puede ser en el pasado.");
             return;
         }
 
-        const diffTiempo = fechaMeta.getTime() - hoy.getTime();
-        const diffDias = diffTiempo / (1000 * 3600 * 24);
+        const diffDias = (fechaMeta.getTime() - hoy.getTime()) / (1000 * 3600 * 24);
         const mesesRestantes = Math.max(1, Math.ceil(diffDias / 30)); 
         const ahorroMensual = costo / mesesRestantes;
 
-        const nuevaMeta = {
-            id: Date.now().toString(), // ID ÚNICO
+        metaTemporal = {
+            id: Date.now().toString(),
             nombre: nombre,
             costo: costo,
             ahorrado: 0,
@@ -178,95 +226,140 @@
             completada: false
         };
 
-        let metas = JSON.parse(localStorage.getItem("metas")) || [];
-        metas.push(nuevaMeta);
-        localStorage.setItem("metas", JSON.stringify(metas));
+        document.getElementById("resumenNombre").textContent = nombre;
+        document.getElementById("resumenMonto").textContent = "$" + ahorroMensual.toFixed(2);
+        document.getElementById("resumenFecha").textContent = fechaLimite;
 
-        document.getElementById("formMeta").reset();
-        cerrarModal("modalCrearMeta");
+        document.getElementById("sheetPaso1").style.display = "none";
+        document.getElementById("sheetPaso2").style.display = "block";
+    });
+
+    document.getElementById("btnVolverAtras").addEventListener("click", function () {
+        document.getElementById("sheetPaso2").style.display = "none";
+        document.getElementById("sheetPaso1").style.display = "block";
+    });
+
+    document.getElementById("btnGuardarMetaDefinitiva").addEventListener("click", function () {
+        let metas = JSON.parse(localStorage.getItem("metas")) || [];
+        metas.push(metaTemporal);
+        localStorage.setItem("metas", JSON.stringify(metas));
+        metaTemporal = null;
+        cerrarPaneles();
         renderizarMetas();
     });
 
+    // --- RENDERIZAR METAS (SEPARANDO ACTIVAS Y COMPLETADAS) ---
     function renderizarMetas() {
-        const contenedor = document.getElementById("listaMetas");
+        const contenedorActivas = document.getElementById("listaMetas");
+        const contenedorCompletadas = document.getElementById("listaCompletadas");
+        
         let metas = JSON.parse(localStorage.getItem("metas")) || [];
 
-        if (metas.length === 0) {
-            contenedor.innerHTML = '<div class="col-12 text-center text-muted"><p>Aún no tienes metas. ¡Crea una con el botón de <strong>+</strong>!</p></div>';
-            return;
-        }
+        // Separamos las metas
+        const activas = metas.filter(function(m) { return !m.completada; });
+        const completadas = metas.filter(function(m) { return m.completada; });
 
-        let html = "";
-        metas.forEach(function (m) {
-            const porcentaje = Math.min((m.ahorrado / m.costo) * 100, 100).toFixed(1);
-            const claseBarra = m.completada ? "bg-success" : "bg-primary";
-            const estadoTexto = m.completada ? '<span class="badge bg-success mb-2">¡Completada!</span>' : '';
-
-            html += `
-                <div class="col-12">
-                    <div class="card shadow-sm mb-3">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h5 class="card-title mb-1">${m.nombre}</h5>
-                                    <p class="text-muted small mb-2">Límite: ${m.fecha}</p>
-                                    ${estadoTexto}
+        // 1. Dibujar las Activas
+        if (activas.length === 0) {
+            contenedorActivas.innerHTML = '<div class="col-12 text-center text-muted"><p>Aún no tienes metas activas.</p></div>';
+        } else {
+            let htmlActivas = "";
+            activas.forEach(function (m) {
+                const porcentaje = Math.min((m.ahorrado / m.costo) * 100, 100).toFixed(1);
+                htmlActivas += `
+                    <div class="col-12">
+                        <div class="card shadow-sm mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="card-title mb-1">${m.nombre}</h5>
+                                        <p class="text-muted small mb-2">Límite: ${m.fecha}</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fw-bold">$${m.ahorrado.toFixed(2)}</span>
+                                        <span class="text-muted small">/ $${m.costo.toFixed(2)}</span>
+                                    </div>
                                 </div>
-                                <div class="text-end">
-                                    <span class="fw-bold">$${m.ahorrado.toFixed(2)}</span>
-                                    <span class="text-muted small">/ $${m.costo.toFixed(2)}</span>
+                                <div class="progress mt-2 mb-3" style="height: 15px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: ${porcentaje}%;">${porcentaje}%</div>
                                 </div>
-                            </div>
-                            
-                            <div class="progress mt-2 mb-3" style="height: 15px;">
-                                <div class="progress-bar ${claseBarra}" role="progressbar" style="width: ${porcentaje}%;" aria-valuenow="${porcentaje}" aria-valuemin="0" aria-valuemax="100">${porcentaje}%</div>
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <small class="text-muted">Ahorro sugerido: $${m.ahorroMensual.toFixed(2)}/mes</small>
-                                <div>
-                                    <button class="btn btn-sm btn-outline-danger me-2" data-eliminar="${m.id}">Eliminar</button>
-                                    <button class="btn btn-sm btn-outline-primary" data-abonar="${m.id}" data-nombre="${m.nombre}">+ Abonar</button>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Ahorro: $${m.ahorroMensual.toFixed(2)}/mes</small>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-danger me-2 btn-eliminar" data-id="${m.id}">Eliminar</button>
+                                        <button class="btn btn-sm btn-outline-primary btn-abonar" data-id="${m.id}">+ Abonar</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-        });
-        contenedor.innerHTML = html;
-
-        // Botones de abonar
-        contenedor.querySelectorAll("[data-abonar]").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                const id = btn.getAttribute("data-abonar");
-                const nombre = btn.getAttribute("data-nombre");
-                
-                document.getElementById("abonarNombreMeta").textContent = "Meta: " + nombre;
-                document.getElementById("abonoId").value = id; 
-                document.getElementById("abonoCantidad").value = "";
-                
-                abrirModal("modalAbonar");
+                `;
             });
-        });
+            contenedorActivas.innerHTML = htmlActivas;
+        }
 
-        // Botones de eliminar
-        contenedor.querySelectorAll("[data-eliminar]").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-                const id = btn.getAttribute("data-eliminar");
-                if(confirm("¿Estás seguro de que quieres eliminar esta meta?")) {
-                    let metasActuales = JSON.parse(localStorage.getItem("metas")) || [];
-                    metasActuales = metasActuales.filter(function(m) { return m.id !== id; });
-                    localStorage.setItem("metas", JSON.stringify(metasActuales));
-                    renderizarMetas();
-                }
+        // 2. Dibujar las Completadas
+        if (completadas.length === 0) {
+            contenedorCompletadas.innerHTML = '<div class="col-12 text-center text-muted"><p>Aún no has completado ninguna meta. ¡Sigue así!</p></div>';
+        } else {
+            let htmlCompletadas = "";
+            completadas.forEach(function (m) {
+                htmlCompletadas += `
+                    <div class="col-12">
+                        <div class="card shadow-sm mb-3 border-success">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title mb-1 text-success">🏆 ${m.nombre}</h5>
+                                        <span class="badge bg-success mb-2">¡Completada!</span>
+                                        <p class="text-muted small mb-0">Ahorrado: $${m.costo.toFixed(2)}</p>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${m.id}">Eliminar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
-        });
+            contenedorCompletadas.innerHTML = htmlCompletadas;
+        }
     }
 
-    // Confirmar abono
+    // --- DETECTAR CLICS EN ABONAR Y ELIMINAR ---
+    document.addEventListener("click", function (e) {
+        
+        if (e.target && e.target.classList.contains("btn-abonar")) {
+            e.preventDefault();
+            const id = e.target.getAttribute("data-id");
+            let metas = JSON.parse(localStorage.getItem("metas")) || [];
+            const meta = metas.find(function(m) { return m.id === id; });
+            
+            if (meta) {
+                metaIdParaAbonar = id;
+                document.getElementById("abonarNombreMeta").textContent = "Meta: " + meta.nombre;
+                document.getElementById("abonoCantidad").value = "";
+                mostrarPanel(sheetAbonar);
+                
+                setTimeout(function() {
+                    document.getElementById("abonoCantidad").focus();
+                }, 300);
+            }
+        }
+
+        if (e.target && e.target.classList.contains("btn-eliminar")) {
+            e.preventDefault();
+            const id = e.target.getAttribute("data-id");
+            if(confirm("¿Estás seguro de que quieres eliminar esta meta?")) {
+                let metas = JSON.parse(localStorage.getItem("metas")) || [];
+                metas = metas.filter(function(m) { return m.id !== id; });
+                localStorage.setItem("metas", JSON.stringify(metas));
+                renderizarMetas();
+            }
+        }
+    });
+
+    // --- CONFIRMAR ABONO Y COMPLETAR META ---
     document.getElementById("btnConfirmarAbono").addEventListener("click", function () {
-        const id = document.getElementById("abonoId").value;
         const cantidad = parseFloat(document.getElementById("abonoCantidad").value);
 
         if (isNaN(cantidad) || cantidad <= 0) {
@@ -275,26 +368,33 @@
         }
 
         let metas = JSON.parse(localStorage.getItem("metas")) || [];
-        
-        const metaIndex = metas.findIndex(function(m) { return m.id === id; });
+        const metaIndex = metas.findIndex(function(m) { return m.id === metaIdParaAbonar; });
         
         if (metaIndex !== -1) {
             metas[metaIndex].ahorrado += cantidad;
             
+            // Si llega o supera el costo, se marca como completada automáticamente
             if (metas[metaIndex].ahorrado >= metas[metaIndex].costo) {
                 metas[metaIndex].ahorrado = metas[metaIndex].costo;
                 metas[metaIndex].completada = true;
             }
 
             localStorage.setItem("metas", JSON.stringify(metas));
-            cerrarModal("modalAbonar");
+            metaIdParaAbonar = null;
+            cerrarPaneles();
             renderizarMetas();
         }
+    });
+
+    // --- BOTÓN PARA VER METAS COMPLETADAS ---
+    document.getElementById("btnAbrirCompletadas").addEventListener("click", function(e) {
+        e.preventDefault();
+        mostrarPanel(sheetCompletadas);
     });
 
     document.addEventListener("DOMContentLoaded", renderizarMetas);
 </script>
 
-    <script src="../theme.js?v=9"></script>
+    <script src="../theme.js?v=24"></script>
 </body>
 </html>
